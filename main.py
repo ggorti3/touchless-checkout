@@ -58,9 +58,11 @@ class ImageProcessResource:
         """
         tensor_list = []
         for frame_bytes in bytes_list:
+            frame_bytes = frame_bytes[frame_bytes.find("base64,") + 7:]
             frame = Image.open(io.BytesIO(base64.b64decode(frame_bytes)))
-
             frame = self.transform(frame).to(torch.float)
+            if frame.shape[0] == 4:
+                frame = frame[0:3]
             norm_transform = transforms.Normalize(
                 mean=[torch.mean(frame[0]), torch.mean(frame[1]), torch.mean(frame[2])],
                 std=[1,1,1]
