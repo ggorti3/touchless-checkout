@@ -54,8 +54,8 @@ def get_frames_from_jester_folder(path, general_transform):
 
         norm_transform = transforms.Normalize(
             mean=[torch.mean(frame[0]), torch.mean(frame[1]), torch.mean(frame[2])],
-            std=[torch.std(frame[0]), torch.std(frame[1]), torch.std(frame[2])]
-            #std=[1,1,1]
+            #std=[torch.std(frame[0]), torch.std(frame[1]), torch.std(frame[2])]
+            std=[1,1,1]
         )
         frame = norm_transform(frame)
 
@@ -110,52 +110,56 @@ def get_frames_from_mov(path, general_transform):
 
 def process_live_video(model, general_transform, rev_label_dict, spatial_length=16):
     softmax = nn.Softmax(dim=1)
+    cv2.destroyAllWindows()
 
     cap = cv2.VideoCapture(0)
 
     # Check if camera opened successfully
     if (cap.isOpened()== False): 
         print("Error opening video stream or file")
+    else:
+        print("Video stream opened successfully")
+
 
     # Read until video is completed
-    frames_queue = deque()
+    frames_list = []
     i = 0
     while(cap.isOpened()):
         # Capture frame-by-frame
+        _, _ = cap.read()
         ret, frame = cap.read()
         if ret == True:
-            if i % 2 == 0:
-                img = frame
-                frame = Image.fromarray(frame)
+            img = frame
+            frame = Image.fromarray(frame)
 
 
-                frame = general_transform(frame).to(torch.float)
+            frame = general_transform(frame).to(torch.float)
 
-                norm_transform = transforms.Normalize(
-                    mean=[torch.mean(frame[0]), torch.mean(frame[1]), torch.mean(frame[2])],
-                    #std=[torch.std(frame[0]), torch.std(frame[1]), torch.std(frame[2])]
-                    std=[1,1,1]
-                )
+            norm_transform = transforms.Normalize(
+                mean=[torch.mean(frame[0]), torch.mean(frame[1]), torch.mean(frame[2])],
+                #std=[torch.std(frame[0]), torch.std(frame[1]), torch.std(frame[2])]
+                std=[1,1,1]
+            )
 
-                frame = norm_transform(frame)
-                frames_queue.append(frame)
+            frame = norm_transform(frame)
+            frames_list.append(frame)
 
-                if i // 2 >= spatial_length:
-                    frames = torch.stack(list(frames_queue))
-                    frames = torch.swapaxes(frames, 0, 1)
-                    out = model(frames.unsqueeze(0))
-                    scores = softmax(out)
-                    pred = torch.argmax(scores).item()
-                    conf = scores[0, pred].item()
-                    label_name = rev_label_dict[pred]
+            if i % spatial_length == spatial_length - 1:
+                frames = torch.stack(frames_list)
+                frames = torch.swapaxes(frames, 0, 1)
+                out = model(frames.unsqueeze(0))
+                scores = softmax(out)
+                pred = torch.argmax(scores).item()
+                conf = scores[0, pred].item()
+                label_name = rev_label_dict[pred]
 
+                info_str = print("{}: {}".format(label_name, conf))
+                # ax.imshow(img)
+                # ax.set_title(info_str)
+                # plt.pause(0.05)
+                # cv2.waitKey(1)
 
-                    # cv2.imshow("{}: {}".format(label_name, conf), img)
-                    # cv2.waitKey(1)
-                    print("{}: {}".format(label_name, conf))
-                
-                if i // 2 > spatial_length:
-                    frames_queue.popleft()
+                frames_list = []
             
 
 
@@ -175,9 +179,9 @@ if __name__ == "__main__":
     model = mobilenetv2.get_model(
         num_classes=27,
         sample_size=112,
-        width_mult=0.45)
+        width_mult=0.7)
 
-    state_dict = torch.load("../results/jester_mobilenetv2_0.45x_RGB_16_best.pth", map_location=torch.device('cpu'))
+    state_dict = torch.load("../results/jester_mobilenetv2_0.7x_RGB_16_best.pth", map_location=torch.device('cpu'))
     new_state_dict = {}
     for k, v in state_dict["state_dict"].items():
         k = k[7:]
@@ -201,9 +205,8 @@ if __name__ == "__main__":
     #frames = get_frames_from_jester_folder("../test_clips/jester_thumb_down/", general_transform)
     #frames = get_frames_from_mov("../test_clips/stop.mov", general_transform)
 
-    # i = 12
+    # i = 22
     # frames = frames[:, i:16 + i]
-    # print(frames)
 
     # plt.imshow(np.stack([frames[0, 0], frames[1, 0], frames[2, 0]], axis=2))
     # plt.show()
