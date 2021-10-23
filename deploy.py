@@ -206,6 +206,23 @@ def save_test_json_file(imgs_path, save_path):
     with open(save_path, "w") as f:
         f.write(serialized_dict)
 
+def save_test_json_file_barcode(img_path, save_path):
+    transform = transforms.Compose([
+        transforms.CenterCrop(1200),
+        transforms.Resize(600)
+    ])
+    my_dict = {}
+    img = Image.open(img_path)
+    img = transform(img)
+    img_byte_arr = io.BytesIO()
+    img.save(img_byte_arr, format='jpeg')
+    img_byte_arr = img_byte_arr.getvalue()
+    encoded = base64.b64encode(img_byte_arr)
+    my_dict["img"] = encoded.decode('ascii')
+    serialized_dict = json.dumps(my_dict)
+    with open(save_path, "w") as f:
+        f.write(serialized_dict)
+
 if __name__ == "__main__":
     # model will run on jester dataset hopefully
     model = mobilenetv2.get_model(
@@ -253,6 +270,7 @@ if __name__ == "__main__":
     # rev_label_dict = get_rev_label_dict("annotation_Jester/categories.txt")
     # process_live_video(model, general_transform, rev_label_dict, spatial_length=16)
 
-    save_test_json_file("../test_clips/jester_thumb_down/", "../test_clips/sample_post_file.json")
+    #save_test_json_file("../test_clips/jester_thumb_down/", "../test_clips/sample_post_file.json")
+    save_test_json_file_barcode("../test_clips/IMG_4171.JPG", "../test_clips/sample_barcode_post_file.json")
     
 

@@ -49,11 +49,6 @@ class ImageProcessResource:
             # transforms.Resize(size=112)
         ])
     
-    def save_img(self, pil_image):
-        """
-        Save an image to file so that we can call the barcode reader
-        """
-        pass
     
     def PIL_to_tensor(self, bytes_list):
         """
@@ -93,7 +88,7 @@ class ImageProcessResource:
         """Handles GET requests"""
         resp.status = falcon.HTTP_200  # This is the default status
         resp.content_type = falcon.MEDIA_TEXT  # Default is JSON, so override
-        resp.text = ('\nProcess frames resource is running\n')
+        resp.text = ('\nGesRec model is running\n')
     
     async def on_post(self, req, resp):
         logger.debug('This is a debug message')
@@ -101,7 +96,6 @@ class ImageProcessResource:
 
         obj = await req.get_media()
 
-        # raw_data = await loop.run_in_executor(None, json.load(), req.bounded_stream)
         bytes_list = []
         for i in range(0, 16):
             frame_bytes = obj.get("frame{}".format(i))
@@ -116,17 +110,59 @@ class ImageProcessResource:
         resp.media = await loop.run_in_executor(None, self.process_scores, scores)
         logger.debug("info returned")
 
+class BarcodeResource():
+    def __init__(self):
+        self.items_dict = {}
+        self.items_dict["070972839564"] = ("notebook", "8.99")
+        self.reader = zxing.BarCodeReader()
+    
+    def call_barcode_reader(self, img_str):
+        """
+        Given img str, convert to bytes, convert to pil, save to dummy image, then call barcode reader
+        """
+        img = Image.open(io.BytesIO(base64.b64decode(img_str)))
+        img = img.rotate(270)
+        img.save("dummy_image.png",  subsampling=0, quality=100)
+        logger.debug("dummy image saved")
+        result = self.reader.decode("dummy_image.png", try_harder=True)
+        if result is not None:
+            logger.debug("scan result: {}".format(result.parsed))
+            name, price = self.items_dict[result.parsed]
+        else:
+            logger.debug("scan result: none")
+            name, price = "n/a", "n/a"
+        
+        results_dict = {"item_name":name, "price":price}
+        return json.dumps(results_dict)
+
+
+    async def on_get(self, req, resp):
+        """Handles GET requests"""
+        resp.status = falcon.HTTP_200  # This is the default status
+        resp.content_type = falcon.MEDIA_TEXT  # Default is JSON, so override
+        resp.text = ('\nBarcode model ready\n')
+
+    async def on_post(self, req, resp):
+        loop = asyncio.get_running_loop()
+        obj = await req.get_media()
+        
+        resp.media = await loop.run_in_executor(None, self.call_barcode_reader, obj["img"])
+        
+
+
 # falcon.asgi.App instances are callable ASGI apps...
 # in larger applications the app is created in a separate file
 app = falcon.asgi.App(cors_enable=True)
 
 # Resources are represented by long-lived class instances
 healthcheck_res = HealthcheckResource()
-process_res = ImageProcessResource("../results/jester_mobilenetv2_0.7x_RGB_16_best.pth", "annotation_Jester/categories.txt")
+process_res = ImageProcessResource("weights/jester_mobilenetv2_0.7x_RGB_16_best.pth", "annotation_Jester/categories.txt")
+barcode_res = BarcodeResource()
 
 # things will handle all requests to the '/things' URL path
 app.add_route('/healthcheck', healthcheck_res)
 app.add_route('/process_frames', process_res)
+app.add_route('/barcode', barcode_res)
 
 
 import uvicorn
