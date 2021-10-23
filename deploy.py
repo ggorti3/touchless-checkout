@@ -1,5 +1,5 @@
 import torch
-from models import mobilenetv2, mobilenet
+from models import mobilenetv2
 import cv2
 import numpy as np
 from PIL import Image
