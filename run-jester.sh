@@ -16,6 +16,6 @@ python main.py --root_path ~/ \
 	--n_threads 16 \
 	--checkpoint 1 \
 	--n_val_samples 1 \
-	# --no_train \
- 	# --no_val \
- 	# --test
+	--no_train \
+ 	--no_val \
+ 	--test
