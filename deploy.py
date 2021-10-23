@@ -9,6 +9,9 @@ import matplotlib.pyplot as plt
 import os
 import time
 from collections import deque
+import json
+import io
+import base64
 
 # create custom dataloader
 
@@ -174,6 +177,35 @@ def process_live_video(model, general_transform, rev_label_dict, spatial_length=
     # Closes all the frames
     cv2.destroyAllWindows()
 
+def save_test_json_file(imgs_path, save_path):
+    file_list = []
+    for _, _, files in os.walk(imgs_path):
+        for name in files:
+            if name.startswith("00"):
+                file_list.append(name)
+    file_list.sort()
+    file_list = file_list[12:28]
+
+    frames_list = []
+    transform = transforms.Resize(112)
+    my_dict = {}
+    for i, f in enumerate(file_list):
+        img_path = os.path.join(imgs_path, f)
+        frame = Image.open(img_path)
+        frame = transform(frame)
+
+        img_byte_arr = io.BytesIO()
+        frame.save(img_byte_arr, format='jpeg')
+        img_byte_arr = img_byte_arr.getvalue()
+        encoded = base64.b64encode(img_byte_arr)
+
+        my_dict["frame{}".format(i)] = encoded.decode('ascii')
+    
+    
+    serialized_dict = json.dumps(my_dict)
+    with open(save_path, "w") as f:
+        f.write(serialized_dict)
+
 if __name__ == "__main__":
     # model will run on jester dataset hopefully
     model = mobilenetv2.get_model(
@@ -218,7 +250,9 @@ if __name__ == "__main__":
 
     # print(softmax(out))
 
-    rev_label_dict = get_rev_label_dict("annotation_Jester/categories.txt")
-    process_live_video(model, general_transform, rev_label_dict, spatial_length=16)
+    # rev_label_dict = get_rev_label_dict("annotation_Jester/categories.txt")
+    # process_live_video(model, general_transform, rev_label_dict, spatial_length=16)
+
+    save_test_json_file("../test_clips/jester_thumb_down/", "../test_clips/sample_post_file.json")
     
 
