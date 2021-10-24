@@ -36,9 +36,9 @@ We used an open source image based barcode-reader library, zxing, to read string
 The REST API has 3 endpoints: `/healthcheck`, `/process_images`, and `/barcode`:
 - `/healthcheck`
     - get: send a response confirming status of the server
-- `process_images`
+- `/process_images`
     - get: send a response confirming status of the Gesture Recognition Model
     - post: given 16 image frames in the request body, detect any hand gestures present and send results  back to kiosk
-- `barcode`
+- `/barcode`
     - get: send a response confirming status of the barcode reader
     - post: given 1 image frame in the request body, detect any barcodes and their encoded string and send corresponding item info back to kiosk
