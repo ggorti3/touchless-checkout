@@ -30,7 +30,7 @@ class ImageProcessResource:
         self.model = mobilenetv2.get_model(
             num_classes=27,
             sample_size=112,
-            width_mult=0.7)
+            width_mult=0.2)
         state_dict = torch.load(model_path, map_location=torch.device('cpu'))
         new_state_dict = {}
         for k, v in state_dict["state_dict"].items():

@@ -11,7 +11,7 @@ app = falcon.asgi.App(cors_enable=True)
 
 # Resources are represented by long-lived class instances
 healthcheck_res = HealthcheckResource()
-process_res = ImageProcessResource("weights/jester_mobilenetv2_0.7x_RGB_16_best.pth", "annotation_Jester/categories.txt")
+process_res = ImageProcessResource("weights/jester_mobilenetv2_0.2x_RGB_16_best.pth", "annotation_Jester/categories.txt")
 barcode_res = BarcodeResource()
 
 # things will handle all requests to the '/things' URL path
