@@ -18,6 +18,7 @@ catalog_dict["070972839564"] = ("notebook", "8.99")
 catalog_dict["030000451304"] = ("energy_bars", "12.99")
 catalog_dict["611269991000"] = ("energy_drink", "3.99")
 catalog_dict["034000318285"] = ("candy_bar", "1.99")
+catalog_dict["036000291452"] = ("gift_card", "29.99")
 barcode_res = BarcodeResource(catalog_dict)
 
 # things will handle all requests to the '/things' URL path
