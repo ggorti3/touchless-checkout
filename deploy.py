@@ -213,9 +213,9 @@ def save_test_json_file_barcode(img_path, save_path):
     ])
     my_dict = {}
     img = Image.open(img_path)
-    img = transform(img)
+    #img = transform(img)
     img_byte_arr = io.BytesIO()
-    img.save(img_byte_arr, format='jpeg')
+    img.save(img_byte_arr, format='png')
     img_byte_arr = img_byte_arr.getvalue()
     encoded = base64.b64encode(img_byte_arr)
     my_dict["img"] = encoded.decode('ascii')
@@ -271,6 +271,6 @@ if __name__ == "__main__":
     # process_live_video(model, general_transform, rev_label_dict, spatial_length=16)
 
     #save_test_json_file("../test_clips/jester_thumb_down/", "../test_clips/sample_post_file.json")
-    save_test_json_file_barcode("../test_clips/IMG_4171.JPG", "../test_clips/sample_barcode_post_file.json")
+    save_test_json_file_barcode("../dummy_image.png", "../test_clips/sample_barcode_post_file.json")
     
 

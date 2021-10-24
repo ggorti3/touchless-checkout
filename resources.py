@@ -30,7 +30,7 @@ class ImageProcessResource:
         self.model = mobilenetv2.get_model(
             num_classes=27,
             sample_size=112,
-            width_mult=0.2)
+            width_mult=0.7)
         state_dict = torch.load(model_path, map_location=torch.device('cpu'))
         new_state_dict = {}
         for k, v in state_dict["state_dict"].items():
@@ -112,9 +112,8 @@ class ImageProcessResource:
         logger.debug("info returned")
 
 class BarcodeResource():
-    def __init__(self):
-        self.items_dict = {}
-        self.items_dict["070972839564"] = ("notebook", "8.99")
+    def __init__(self, catalog_dict):
+        self.items_dict = catalog_dict
         self.reader = zxing.BarCodeReader()
     
     def call_barcode_reader(self, img_str):
@@ -122,7 +121,6 @@ class BarcodeResource():
         Given img str, convert to bytes, convert to pil, save to dummy image, then call barcode reader
         """
         img = Image.open(io.BytesIO(base64.b64decode(img_str)))
-        img = img.rotate(270)
         img.save("dummy_image.png",  subsampling=0, quality=100)
         logger.debug("dummy image saved")
         result = self.reader.decode("dummy_image.png", try_harder=True)
