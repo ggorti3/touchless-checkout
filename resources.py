@@ -120,6 +120,8 @@ class BarcodeResource():
         """
         Given img str, convert to bytes, convert to pil, save to dummy image, then call barcode reader
         """
+        if img_str.startswith("data"):
+            img_str = img_str[img_str.find("base64,") + 7:]
         img = Image.open(io.BytesIO(base64.b64decode(img_str)))
         img.save("dummy_image.png",  subsampling=0, quality=100)
         logger.debug("dummy image saved")

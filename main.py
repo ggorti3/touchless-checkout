@@ -25,5 +25,4 @@ app.add_route('/healthcheck', healthcheck_res)
 app.add_route('/process_frames', process_res)
 app.add_route('/barcode', barcode_res)
 
-
 uvicorn.run(app, port=8000, log_level="debug")
